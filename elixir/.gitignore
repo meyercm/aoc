@@ -24,3 +24,6 @@ elixir-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+.nix-hex/
+.nix-mix/
