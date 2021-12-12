@@ -61,7 +61,7 @@ defmodule Aoc.Y2021.Day8Test do
 
   describe "part_2" do
     test "part 2 gets correct answer" do
-      assert Day8.part_2() == 0
+      assert Day8.part_2() == 1096964
     end
   end
 
