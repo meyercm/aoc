@@ -66,7 +66,7 @@ defmodule Aoc.Y2021.Day11Test do
   end
 
   test "part 2 gets correct answer" do
-    assert Day11.part_2() == 0
+    assert Day11.part_2() ==212
   end
 
   test "one step matches example" do
