@@ -95,6 +95,56 @@ defmodule Aoc.Y2021.Day22 do
 
   end
 
+  def do_part_1_alt_alt(data) do
+    reversed = Enum.reverse(data)
+       |> Enum.reject(&outside_init?/1)
+    x_es = get_coords(data, :x)
+    y_es = get_coords(data, :y)
+    z_es = get_coords(data, :z)
+
+    for x_s..x_e <- x_es,
+        y_s..y_e <- y_es,
+        z_s..z_e <- z_es do
+      if is_on?(reversed, {x_s, y_s, z_s}) do
+        (x_e - x_s) * (y_e - y_s) * (z_e - z_s)
+      else
+        0
+      end
+    end
+    |> Enum.sum
+  end
+
+  def is_on?(reversed, point) do
+    reversed
+    |> Stream.filter(&contains_point?(&1, point))
+    |> Enum.take(1)
+    |> case do
+      [] -> false
+      [~M{on}] -> on
+    end
+  end
+
+  def contains_point?(%{x: x_s..x_e, y: y_s..y_e, z: z_s..z_e}, {x, y, z}) do
+    x_s <= x and x_e >= x and
+    y_s <= y and y_e >= y and
+    z_s <= z and z_e >= z
+  end
+
+  def get_coords(data, key) do
+    coords =
+    Enum.map(data, fn step ->
+      start..stop = Map.get(step, key)
+      [start, stop+1]
+    end)
+    |> List.flatten
+    |> Enum.sort()
+    |> Enum.uniq()
+
+    coords
+    |> Enum.zip(Enum.drop(coords, 1))
+    |> Enum.map(fn {s, e} -> s..e end)
+  end
+
   def limit_coord(_start..stop, {:gt, val}) when stop < val, do: nil
   def limit_coord(start..stop, {:gt, val}) when start < val, do: val..stop
   def limit_coord(start.._stop, {:lt, val}) when start >= val, do: nil

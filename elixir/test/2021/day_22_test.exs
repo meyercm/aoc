@@ -65,6 +65,10 @@ on x=967..23432,y=45373..81175,z=27513..53682
     assert Day22.do_part_1_alt(@ex) == 590784
   end
 
+  test "part 1 matches example alt alt" do
+    assert Day22.do_part_1_alt_alt(@ex) == 590784
+  end
+
   test "part 1 gets correct answer" do
     assert Day22.part_1() == 652209
   end
