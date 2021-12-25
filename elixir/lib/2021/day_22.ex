@@ -95,9 +95,8 @@ defmodule Aoc.Y2021.Day22 do
 
   end
 
-  def do_part_1_alt_alt(data) do
+  def algo_take_2(data) do
     reversed = Enum.reverse(data)
-       |> Enum.reject(&outside_init?/1)
     x_es = get_coords(data, :x)
     y_es = get_coords(data, :y)
     z_es = get_coords(data, :z)
@@ -159,8 +158,7 @@ defmodule Aoc.Y2021.Day22 do
   def do_part_1(data) do
     data
     |> Enum.reject(&outside_init?/1)
-    |> Enum.reduce(%{}, &apply_step/2)
-    |> Enum.count
+    |> algo_take_2()
   end
 
   def part_2() do
@@ -169,8 +167,7 @@ defmodule Aoc.Y2021.Day22 do
   end
 
   def do_part_2(data) do
-    Enum.map(data, &magnitude/1)
-    |> IO.inspect
+    algo_take_2(data)
   end
 
 end
