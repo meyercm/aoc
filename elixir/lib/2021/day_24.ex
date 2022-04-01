@@ -1,6 +1,7 @@
 defmodule Aoc.Y2021.Day24 do
   import ShorterMaps
   import PredicateSigil
+  require Logger
 
   @registers ["w", "x", "y", "z"]
 
@@ -40,27 +41,36 @@ defmodule Aoc.Y2021.Day24 do
 
 
     def collapse_step(_reg, {:add, _a, 0}, acc), do: acc
-    def collapse_step(reg, {:add, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, a + b)
+    # def collapse_step(reg, {:add, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, a + b)
     def collapse_step(_reg, {:mul, _a, 1}, acc), do: acc
     def collapse_step(reg, {:mul, 1, b}, acc), do: Map.put(acc, reg, b)
     def collapse_step(reg, {:mul, _a, 0}, acc), do: Map.put(acc, reg, 0)
     def collapse_step(reg, {:mul, 0, _b}, acc), do: Map.put(acc, reg, 0)
-    def collapse_step(reg, {:mul, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, a * b)
+    # def collapse_step(reg, {:mul, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, a * b)
     def collapse_step(_reg, {:div, _key, 1}, acc), do: acc
     def collapse_step(reg, {:div, a, a}, acc), do: Map.put(acc, reg, 1)
-    def collapse_step(reg, {:div, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, div(a, b))
+    # def collapse_step(reg, {:div, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, div(a, b))
     def collapse_step(reg, {:eql, a, a}, acc), do: Map.put(acc, reg, 1)
-    def collapse_step(reg, {:eql, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, eql(a, b))
+    # def collapse_step(reg, {:eql, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, eql(a, b))
     def collapse_step(_reg, {:mod, _a, 1}, acc), do: acc
-    def collapse_step(reg, {:mod, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, rem(a, b))
+    # def collapse_step(reg, {:mod, a, b}, acc) when is_integer(a) and is_integer(b), do: Map.put(acc, reg, rem(a, b))
 
-    def collapse_step(reg, {op, a, b}, acc) do
-      Map.put(acc, reg, {op, a, b})
+    def collapse_step(reg, operation, acc) do
+      val = simplify(operation)
+      Map.put(acc, reg, val)
     end
 
     def eql(a, a) when is_integer(a), do: 1
     def eql(a, b) when is_integer(a) and is_integer(b), do: 0
 
+    def simplify(~M{%ALU w, x, y, z} = alu) do
+      %ALU{alu |
+        w: simplify(w),
+        x: simplify(x),
+        y: simplify(y),
+        z: simplify(z)
+    }
+    end
     def simplify(value) when not is_tuple(value), do: value
     def simplify({:add, a, b}) when is_integer(a) and is_integer(b), do: a + b
     def simplify({:mul, a, b}) when is_integer(a) and is_integer(b), do: a * b
@@ -73,13 +83,43 @@ defmodule Aoc.Y2021.Day24 do
     def simplify({:mul, 0, _b}), do: 0
     def simplify({:mul, a, 1}), do: a
     def simplify({:mul, 1, b}), do: b
+    def simplify({:div, 0, _b}), do: 0
     def simplify({:div, a, 1}), do: a
     def simplify({:div, a, a}), do: 1
     def simplify({:mod, a, 1}), do: a
     def simplify({:mod, a, a}), do: 0
+    def simplify({:mod, {:mul, a, _b}, a}), do: 0
+    def simplify({:mod, {:mul, _a, b}, b}), do: 0
     def simplify({:eql, a, a}), do: 1
+    def simplify({:eql, a, b}) when is_atom(a) and is_integer(b) and b > 9, do: 0
+    def simplify({:eql, b, a}) when is_atom(a) and is_integer(b) and b > 9, do: 0
+    def simplify({:eql, a, b}) when is_atom(a) and is_integer(b) and b > 9, do: 0
+    def simplify({:eql, a, b}) when is_atom(b) do
+      new_a = simplify(a)
+      if get_minimum(new_a) > 9 or get_maximum(new_a) < 1, do: 0, else: {:eql, new_a, b}
+    end
+    def simplify({:eql, a, b}) when is_atom(a) do
+      new_b = simplify(b)
+      if get_minimum(new_b) > 9 or get_maximum(new_b) < 1, do: 0, else: {:eql, a, new_b}
+    end
 
     def simplify({op, a, b}), do: {op, simplify(a), simplify(b)}
+
+    def get_minimum(val) when is_integer(val), do: val
+    def get_minimum(val) when is_atom(val), do: 1
+    def get_minimum({:add, a, b}), do: get_minimum(a) + get_minimum(b)
+    def get_minimum({:mul, a, b}), do: get_minimum(a) * get_minimum(b)
+    def get_minimum({:div, _a, _b}), do: 0
+    def get_minimum({:mod, _a, _b}), do: 0
+    def get_minimum({:eql, _a, _b}), do: 0
+
+    def get_maximum(val) when is_integer(val), do: val
+    def get_maximum(val) when is_atom(val), do: 9
+    def get_maximum({:add, a, b}), do: get_maximum(a) + get_maximum(b)
+    def get_maximum({:mul, a, b}), do: get_maximum(a) * get_maximum(b)
+    def get_maximum({:div, a, _b}), do: get_maximum(a)
+    def get_maximum({:mod, _a, b}), do: get_maximum(b) - 1
+    def get_maximum({:eql, _a, _b}), do: 1
 
     def stringify(:add), do: "+"
     def stringify(:mul), do: "*"
@@ -163,7 +203,19 @@ defmodule Aoc.Y2021.Day24 do
   end
 
   def do_part_1(data) do
-    data |> ALU.symbolic_collapse() |> Map.get(:z) |> ALU.simplify |> ALU.stringify
+    data
+    |> log("loaded")
+    |> ALU.symbolic_collapse()
+    |> log("collapsed")
+    |> Map.get(:z)
+    |> ALU.simplify
+    |> log("simplified")
+    |> ALU.stringify
+  end
+
+  def log(val, string) do
+    Logger.error(string)
+    val
   end
 
   def part_2() do

@@ -28,6 +28,7 @@ div w 2
 mod w 2")
 
 @convoluted Day24.parse_data("inp w
+inp y
 add z 5
 mul z 2
 add z 3
@@ -36,7 +37,27 @@ add x y
 eql w x")
 
   test "collapse convoluted" do
-    assert "" == ALU.symbolic_collapse(@convoluted) |> Map.get(:w)|> ALU.simplify |> ALU.stringify()
+    assert "0" == ALU.symbolic_collapse(@convoluted) |> Map.get(:w)|> ALU.simplify |> ALU.stringify()
+  end
+
+  test "simplify identities" do
+    assert :input_1 == ALU.simplify({:add, 0, :input_1})
+    assert :input_1 == ALU.simplify({:add, :input_1, 0})
+    assert :input_1 == ALU.simplify({:mul, 1, :input_1})
+    assert :input_1 == ALU.simplify({:mul, :input_1, 1})
+    assert 0 == ALU.simplify({:mul, 0, :input_1})
+    assert 0 == ALU.simplify({:mul, :input_1, 0})
+    assert :input_1 == ALU.simplify({:div, :input_1, 1})
+    assert 0 == ALU.simplify({:div, 0, :input_1})
+    assert 1 == ALU.simplify({:div, :input_1, :input_1})
+    assert :input_1 == ALU.simplify({:mod, :input_1, 1})
+    assert 0 == ALU.simplify({:mod, :input_1, :input_1})
+    assert 1 == ALU.simplify({:eql, :input_1, :input_1})
+  end
+
+  test "simplify equals" do
+    "(input_0+1)%26)+13)==input_1)"
+    assert 0 == ALU.simplify({:eql, {:add, {:mod, {:add, :input_0, 1},26}, 13}, :input_1})
   end
 
   test "negate example" do
@@ -75,7 +96,7 @@ eql w x")
   @validator Day24.load_data()
   test "part 1 partial input" do
     result = ALU.new([1, 1]) |> ALU.run_thru(@validator)
-    assert result == []
+    # assert result == []
   end
 
 
