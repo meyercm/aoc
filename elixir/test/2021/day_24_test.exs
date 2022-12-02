@@ -101,7 +101,7 @@ eql w x")
 
 
   test "part 1 brute force" do
-    assert Day24.part_1() == 0
+    assert Day24.part_1() == 489
   end
 
   # test "part 2 matches example" do

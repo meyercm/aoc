@@ -13,6 +13,7 @@ defmodule Aoc.Y2021.Day1Test do
 260
 263
 "
+@example_collapsed []
   @parsed_example Day1.process_lines(@example)
 
   describe "process lines" do
@@ -36,9 +37,15 @@ defmodule Aoc.Y2021.Day1Test do
 
   describe "compare" do
     test "it handles some examples correctly" do
-      assert Day1.compare({200, 199}) == :inc
-      assert Day1.compare({200, 210}) == :dec
+      assert Day1.compare({200, 199}) == :dec
+      assert Day1.compare({200, 210}) == :inc
       assert Day1.compare({200, 200}) == :eql
+    end
+  end
+
+  describe "part 2" do
+    test "gets the right answer" do
+      assert Day1.part_2() == 1748
     end
   end
 
